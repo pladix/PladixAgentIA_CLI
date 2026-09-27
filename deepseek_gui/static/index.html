@@ -1,0 +1,1955 @@
+<!DOCTYPE html>
+<html lang="pt-br" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PladixAgentIA - Supremo IDE v2.0</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Highlight.js for Chat Code Blocks -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    
+    <!-- Marked.js for Markdown Rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#080c14',
+                            panel: '#0e1422',
+                            card: '#141d30',
+                            border: '#1e2b42',
+                            hover: '#1a263d',
+                            cyan: '#00d2ff',
+                            blue: '#2563eb',
+                            amber: '#f59e0b',
+                            emerald: '#10b981',
+                            purple: '#8b5cf6'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'Consolas', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Monaco Editor Loader -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+    
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            background-color: #080c14; 
+            color: #d1d5db; 
+            font-family: 'Inter', sans-serif;
+            user-select: none;
+        }
+        
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #080c14; }
+        ::-webkit-scrollbar-thumb { background: #233147; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334460; }
+        
+        .monaco-editor { padding-top: 4px; }
+        
+        /* Glow Effects */
+        .glow-cyan { box-shadow: 0 0 15px rgba(0, 210, 255, 0.25); }
+        .glow-amber { box-shadow: 0 0 15px rgba(245, 158, 11, 0.25); }
+        .glow-emerald { box-shadow: 0 0 12px rgba(16, 185, 129, 0.25); }
+        
+        /* Typography & Chat Content */
+        .chat-content {
+            font-size: 0.8125rem;
+            line-height: 1.6;
+            letter-spacing: 0.01em;
+            color: #d1d5db;
+        }
+        .chat-content h1, .chat-content h2, .chat-content h3, .chat-content h4 {
+            color: #f8fafc;
+            font-weight: 700;
+            margin-top: 14px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .chat-content h1 { font-size: 1.15rem; border-bottom: 1px solid #1e2b42; padding-bottom: 4px; color: #38bdf8; }
+        .chat-content h2 { font-size: 1rem; border-bottom: 1px solid rgba(30, 43, 66, 0.6); padding-bottom: 3px; color: #e2e8f0; }
+        .chat-content h3 { font-size: 0.875rem; color: #38bdf8; }
+        .chat-content h4 { font-size: 0.825rem; color: #cbd5e1; }
+
+        .chat-content strong { color: #f1f5f9; font-weight: 600; }
+        .chat-content em { color: #94a3b8; }
+        .chat-content p { margin-bottom: 8px; line-height: 1.6; }
+        .chat-content ul, .chat-content ol { padding-left: 18px; margin-bottom: 8px; }
+        .chat-content li { margin-bottom: 4px; }
+
+        /* Code inside Chat */
+        .chat-content pre {
+            background: #080d16 !important;
+            border: 1px solid #1e2b42;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 8px 0;
+            overflow-x: auto;
+            position: relative;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+        }
+        .chat-content pre:hover {
+            border-color: #2b3d5c;
+        }
+        .chat-content code {
+            font-family: 'JetBrains Mono', Consolas, monospace;
+            font-size: 0.8125rem;
+        }
+        .chat-content :not(pre) > code {
+            background: #141d30;
+            color: #38bdf8;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #1e2b42;
+            font-size: 0.78rem;
+            font-family: 'JetBrains Mono', Consolas, monospace;
+        }
+
+        /* Modern Tables (Dark GitHub/Notion Style) */
+        .chat-content table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 10px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #1e2b42;
+            background: #090e18;
+            font-size: 0.78rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+        .chat-content th {
+            background: #111a2c;
+            color: #38bdf8;
+            font-weight: 700;
+            font-size: 0.72rem;
+            letter-spacing: 0.06em;
+            padding: 8px 12px;
+            border-bottom: 1px solid #1e2b42;
+            text-transform: uppercase;
+        }
+        .chat-content td {
+            padding: 7px 12px;
+            border-bottom: 1px solid #151e30;
+            color: #cbd5e1;
+            font-family: 'Inter', sans-serif;
+        }
+        .chat-content tr:last-child td { border-bottom: none; }
+        .chat-content tr:nth-child(even) td { background: rgba(255, 255, 255, 0.015); }
+        .chat-content tr:hover td { background: rgba(56, 189, 248, 0.05); }
+
+        /* Blockquotes / Callouts */
+        .chat-content blockquote {
+            background: rgba(14, 23, 42, 0.6);
+            border-left: 3px solid #38bdf8;
+            border-radius: 0 6px 6px 0;
+            padding: 8px 12px;
+            margin: 8px 0;
+            color: #94a3b8;
+            font-style: normal;
+        }
+        .chat-content blockquote p { margin: 0; }
+
+        /* Think container */
+        .think-box {
+            background: rgba(10, 16, 26, 0.85);
+            border-left: 3px solid #00d2ff;
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* Autonomous Step Banner */
+        .step-notice-banner {
+            background: linear-gradient(90deg, rgba(0, 210, 255, 0.12), rgba(37, 99, 235, 0.08));
+            border: 1px solid rgba(0, 210, 255, 0.35);
+            border-radius: 8px;
+            padding: 7px 12px;
+            color: #38bdf8;
+            font-weight: 600;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 0 12px rgba(0, 210, 255, 0.15);
+            margin: 6px 0;
+        }
+
+        /* Interactive Suggestion Chips */
+        .suggestion-chip {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .suggestion-chip:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 210, 255, 0.25);
+        }
+
+        #drop-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 210, 255, 0.08);
+            backdrop-filter: blur(4px);
+            border: 2px dashed #00d2ff;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col overflow-hidden text-sm">
+
+    <!-- Drag & Drop Overlay -->
+    <div id="drop-overlay" class="flex flex-col items-center justify-center pointer-events-none">
+        <i class="fa-solid fa-file-arrow-up text-5xl text-brand-cyan mb-3 animate-bounce"></i>
+        <h2 class="text-xl font-bold text-white">Solte o arquivo para anexar e iniciar a produção</h2>
+        <p class="text-gray-400 mt-1 text-xs">Suporta arquivos .txt, .log, scripts PHP, Python, JSON, etc.</p>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TOP NAVIGATION BAR -->
+    <!-- ========================================== -->
+    <header class="h-13 bg-brand-panel/95 border-b border-brand-border flex items-center px-4 justify-between z-30 select-none shadow-sm">
+        
+        <!-- Logo & Brand -->
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center text-white font-black shadow-md glow-cyan">
+                <i class="fa-solid fa-bolt text-sm"></i>
+            </div>
+            <div class="flex items-baseline gap-2">
+                <span class="font-extrabold text-base tracking-wide bg-gradient-to-r from-white via-gray-100 to-cyan-300 bg-clip-text text-transparent">
+                    PladixAgentIA
+                </span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-950/80 text-cyan-400 border border-cyan-800 tracking-wider">
+                    SUPREMO IDE v2.0
+                </span>
+            </div>
+
+            <!-- Workspace Quick Control -->
+            <div class="h-5 w-px bg-brand-border mx-2"></div>
+            <div class="flex items-center gap-2 bg-brand-dark border border-brand-border rounded-lg px-2.5 py-1 text-xs text-gray-300 shadow-inner">
+                <i class="fa-solid fa-folder text-amber-400 text-xs"></i>
+                <span id="header-ws-name" class="font-semibold text-gray-200 truncate max-w-[200px]" title="Workspace">...</span>
+                <button onclick="openWorkspaceModal()" class="hover:text-cyan-400 px-1 py-0.5 rounded transition text-[11px] font-medium flex items-center gap-1" title="Alterar ou Criar Pasta de Workspace">
+                    <i class="fa-solid fa-pen-to-square"></i> Mudar
+                </button>
+                <button onclick="openInExplorer()" class="hover:text-cyan-400 px-1 py-0.5 rounded transition text-[11px]" title="Abrir no Windows Explorer">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Center Controls: Quick Mode & Presets -->
+        <div class="hidden md:flex items-center gap-2">
+            <!-- Modo Pladix Toggle Button -->
+            <button id="btn-toggle-pladix" onclick="togglePladixMode()" class="flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-bold transition border border-amber-500/40 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 glow-amber">
+                <i class="fa-solid fa-fire text-amber-400"></i>
+                <span id="pladix-mode-label">Pladix Coder: ATIVO</span>
+            </button>
+
+            <!-- Agent Role Switcher -->
+            <select id="agent-role-select" onchange="changeAgentRole(this.value)" class="bg-brand-dark border border-brand-border text-xs rounded-lg px-2.5 py-1 text-gray-200 outline-none hover:border-brand-cyan transition cursor-pointer">
+                <option value="pladix_coder">🔥 Pladix PHP Supremo</option>
+                <option value="coder">💻 Desenvolvedor Sênior</option>
+                <option value="architect">🏗️ Arquiteto de Software</option>
+                <option value="reviewer">🔍 Code Reviewer / Auditor</option>
+                <option value="debugger">⚡ Debugger & Patch</option>
+                <option value="tester">🧪 QA & Testes</option>
+            </select>
+        </div>
+
+        <!-- Right System Indicators & Actions -->
+        <div class="flex items-center gap-2.5 text-xs">
+            
+            <!-- Settings Modal Button -->
+            <button onclick="openSettingsModal()" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-brand-card hover:bg-brand-hover border border-brand-border text-gray-200 hover:text-cyan-300 transition font-medium" title="Configurações de Credenciais, Token e PHP/XAMPP">
+                <i class="fa-solid fa-gear text-cyan-400"></i>
+                <span class="hidden sm:inline text-[11px]">Configurações</span>
+            </button>
+
+            <!-- Online Indicator -->
+            <div id="status-indicator" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand-dark border border-brand-border text-gray-400">
+                <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></div>
+                <span class="text-[11px] font-medium text-emerald-400">Online (Real Web)</span>
+            </div>
+
+            <!-- Clear / Refresh -->
+            <button onclick="refreshFileTree()" class="p-1.5 hover:text-white text-gray-400 transition" title="Recarregar Arquivos">
+                <i class="fa-solid fa-arrows-rotate"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- ========================================== -->
+    <!-- MAIN WORKSPACE LAYOUT (3 PANELS) -->
+    <!-- ========================================== -->
+    <div class="flex flex-1 overflow-hidden relative">
+        
+        <!-- ========================================== -->
+        <!-- LEFT PANEL: FILE EXPLORER (260px) -->
+        <!-- ========================================== -->
+        <div class="w-64 min-w-[240px] max-w-[320px] border-r border-brand-border bg-brand-panel flex flex-col select-none">
+            
+            <!-- Explorer Header -->
+            <div class="h-10 px-3 border-b border-brand-border flex items-center justify-between text-xs text-gray-400 font-semibold tracking-wider uppercase">
+                <span class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-folder-tree text-cyan-400"></i>
+                    <span>Arquivos do Projeto</span>
+                </span>
+                <div class="flex items-center gap-1">
+                    <button onclick="promptCreateFile()" class="p-1 hover:text-white hover:bg-brand-hover rounded transition" title="Criar Novo Arquivo">
+                        <i class="fa-solid fa-file-circle-plus"></i>
+                    </button>
+                    <button onclick="promptCreateFolder()" class="p-1 hover:text-white hover:bg-brand-hover rounded transition" title="Criar Nova Pasta">
+                        <i class="fa-solid fa-folder-plus"></i>
+                    </button>
+                    <button onclick="refreshFileTree()" class="p-1 hover:text-white hover:bg-brand-hover rounded transition" title="Atualizar">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Breadcrumbs / Folder Navigation -->
+            <div class="px-2.5 py-1.5 border-b border-brand-border/60 bg-brand-dark/40 flex items-center justify-between text-[11px] text-gray-400">
+                <div class="flex items-center gap-1 truncate">
+                    <i class="fa-solid fa-house text-gray-500 text-[10px]"></i>
+                    <span id="explorer-folder-name" class="font-medium text-gray-300 truncate">Workspace</span>
+                </div>
+                <button id="btn-up-folder" onclick="navigateUpFolder()" class="hidden hover:text-white text-cyan-400 px-1 py-0.5 rounded transition text-[10px] font-bold" title="Subir para pasta anterior">
+                    <i class="fa-solid fa-level-up"></i> Subir
+                </button>
+            </div>
+
+            <!-- Quick Filter Bar -->
+            <div class="p-2 border-b border-brand-border/60">
+                <div class="relative flex items-center">
+                    <i class="fa-solid fa-magnifying-glass absolute left-2.5 text-xs text-gray-500"></i>
+                    <input id="filter-input" oninput="filterFiles(this.value)" type="text" placeholder="Filtrar arquivos..." class="w-full bg-brand-dark border border-brand-border text-xs rounded-md pl-7 pr-2 py-1 text-gray-200 outline-none focus:border-brand-cyan transition">
+                </div>
+            </div>
+
+            <!-- File List Container -->
+            <div id="file-explorer" class="flex-1 overflow-y-auto p-1.5 text-xs text-gray-300 space-y-0.5">
+                <!-- Arquivos gerados dinamicamente via JS -->
+            </div>
+
+            <!-- Workspace Footer Card -->
+            <div id="workspace-footer-card" class="p-2.5 border-t border-brand-border bg-brand-dark/50 text-xs">
+                <div class="flex items-center justify-between text-gray-400 mb-1">
+                    <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Local Workspace</span>
+                    <span id="ws-files-count" class="text-[10px] bg-brand-card px-1.5 py-0.5 rounded text-gray-400">0 arquivos</span>
+                </div>
+                <div id="ws-full-path" class="text-[10px] text-gray-500 truncate font-mono" title="Caminho do workspace">Carregando...</div>
+                
+                <!-- Quick Button: Attach conteudo.txt -->
+                <div id="conteudo-quick-badge" class="mt-2 pt-2 border-t border-brand-border/40">
+                    <button onclick="loadConteudoTxt()" class="w-full py-1 px-2 rounded bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 font-medium text-[11px] flex items-center justify-center gap-1.5 transition">
+                        <i class="fa-solid fa-file-lines text-amber-400"></i>
+                        <span>Anexar conteudo.txt</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- CENTER PANEL: MONACO CODE EDITOR & OUTPUT -->
+        <!-- ========================================== -->
+        <div class="flex-1 flex flex-col relative bg-brand-dark overflow-hidden min-w-[350px]">
+            
+            <!-- Editor Tabs Bar -->
+            <div class="h-10 bg-brand-panel border-b border-brand-border flex items-center justify-between px-2 overflow-hidden select-none">
+                <div id="editor-tabs" class="flex items-center gap-1 overflow-x-auto h-full text-xs">
+                    <!-- Abas injetadas dinamicamente -->
+                </div>
+                
+                <!-- Editor Action Buttons -->
+                <div class="flex items-center gap-1.5 pl-2">
+                    <!-- Execute Button (F5) -->
+                    <button onclick="executeCurrentFile()" class="px-2.5 py-1 rounded bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 font-semibold text-xs flex items-center gap-1.5 transition shadow" title="Executar Script no PHP do XAMPP ou Python">
+                        <i class="fa-solid fa-play text-[10px] text-emerald-400"></i>
+                        <span>Executar</span>
+                    </button>
+
+                    <!-- Save Button (Ctrl+S) -->
+                    <button onclick="saveCurrentFile()" class="px-2.5 py-1 rounded bg-brand-card hover:bg-brand-hover text-gray-200 border border-brand-border font-medium text-xs flex items-center gap-1.5 transition" title="Salvar Arquivo (Ctrl+S)">
+                        <i class="fa-solid fa-floppy-disk text-cyan-400 text-xs"></i>
+                        <span>Salvar</span>
+                    </button>
+
+                    <button onclick="checkSyntaxCurrentFile()" class="p-1 px-2 hover:bg-brand-hover rounded text-gray-400 hover:text-cyan-400 transition text-xs flex items-center gap-1" title="Verificar Sintaxe (PHP/Python/JS)">
+                        <i class="fa-solid fa-stethoscope"></i>
+                        <span class="hidden xl:inline text-[11px]">Validar</span>
+                    </button>
+                    
+                    <button onclick="copyEditorCode()" class="p-1 px-2 hover:bg-brand-hover rounded text-gray-400 hover:text-white transition text-xs flex items-center gap-1" title="Copiar Todo o Código">
+                        <i class="fa-solid fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Monaco Editor Container -->
+            <div id="monaco-container" class="flex-1 w-full h-full"></div>
+
+            <!-- Terminal Execution Output Drawer (Collapsible) -->
+            <div id="terminal-drawer" class="hidden h-52 bg-brand-panel border-t border-brand-border flex flex-col z-20 shadow-2xl">
+                <div class="h-8 px-3 bg-brand-dark border-b border-brand-border flex items-center justify-between text-xs select-none">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-terminal text-cyan-400 text-xs"></i>
+                        <span class="font-bold text-gray-200 text-[11px]">Saída de Execução (Terminal PHP/Python)</span>
+                        <span id="terminal-status-tag" class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 font-mono">STATUS: 0</span>
+                        <span id="terminal-elapsed" class="text-[10px] text-gray-400">0.05s</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="document.getElementById('terminal-content').innerText = ''" class="text-gray-400 hover:text-white text-[11px] p-1">Limpar</button>
+                        <button onclick="toggleTerminalDrawer()" class="text-gray-400 hover:text-white text-xs p-1">✕</button>
+                    </div>
+                </div>
+                <div class="flex-1 p-3 overflow-y-auto font-mono text-xs text-gray-300 whitespace-pre-wrap select-text bg-[#070b12]" id="terminal-content"></div>
+            </div>
+
+            <!-- Editor Status Bar -->
+            <div class="h-6 bg-brand-panel border-t border-brand-border flex items-center justify-between px-3 text-[11px] text-gray-400 select-none">
+                <div class="flex items-center gap-3">
+                    <span id="status-cursor">Linha 1, Coluna 1</span>
+                    <span id="status-lang" class="uppercase font-semibold text-cyan-400">PHP</span>
+                    <span id="status-php-env" class="text-gray-400 hidden sm:inline" title="Interpretador PHP">PHP: Detectado</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleTerminalDrawer()" class="hover:text-cyan-400 text-gray-400 flex items-center gap-1 transition">
+                        <i class="fa-solid fa-terminal text-[10px]"></i> Terminal
+                    </button>
+                    <span>UTF-8</span>
+                    <span id="status-save-state" class="text-emerald-400 flex items-center gap-1"><i class="fa-solid fa-circle text-[6px]"></i> Salvo</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- RIGHT PANEL: AUTONOMOUS AGENT & CHAT (480px) -->
+        <!-- ========================================== -->
+        <div class="w-[480px] min-w-[380px] max-w-[600px] border-l border-brand-border bg-brand-panel flex flex-col relative shadow-2xl z-20">
+            
+            <!-- Agent Header -->
+            <div class="h-12 border-b border-brand-border flex items-center px-4 justify-between bg-brand-panel/90 select-none">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-md bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center text-white text-xs">
+                        <i id="agent-header-icon" class="fa-solid fa-robot"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-gray-200 text-xs flex items-center gap-1.5">
+                            <span id="agent-header-title">Agente Autônomo DeepSeek</span>
+                            <span class="text-[9px] px-1.5 py-0.2 rounded bg-brand-card text-gray-400 border border-brand-border font-mono">IA</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <!-- Toggle Auto-Loop Button -->
+                    <button id="btn-toggle-autoloop" onclick="toggleAutoLoop()" class="flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-bold border border-cyan-500/40 bg-cyan-950/40 text-cyan-300 hover:bg-cyan-900/50 transition shadow glow-cyan" title="Alternar entre modo 100% autônomo contínuo ou confirmação passo a passo">
+                        <i class="fa-solid fa-infinity text-cyan-400" id="autoloop-icon"></i>
+                        <span id="autoloop-label">Autônomo: ON</span>
+                    </button>
+
+                    <!-- Stop Generation Button -->
+                    <button id="btn-stop-generation" onclick="stopGeneration()" class="hidden px-2 py-1 rounded-lg text-xs font-bold bg-red-600/30 hover:bg-red-600/50 text-red-300 border border-red-500/50 transition flex items-center gap-1.5 animate-pulse" title="Interromper agente autônomo imediatamente">
+                        <i class="fa-solid fa-stop text-red-400"></i>
+                        <span>Parar</span>
+                    </button>
+
+                    <button onclick="newChatSession()" class="text-xs text-gray-400 hover:text-white px-2 py-1 rounded hover:bg-brand-hover transition flex items-center gap-1" title="Iniciar Nova Sessão">
+                        <i class="fa-solid fa-plus text-[10px]"></i> Novo
+                    </button>
+                    <button onclick="clearChat()" class="text-xs text-gray-400 hover:text-white px-2 py-1 rounded hover:bg-brand-hover transition" title="Limpar Mensagens">
+                        <i class="fa-solid fa-trash-can text-[10px]"></i> Limpar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Collapsible Checklist Header Card -->
+            <div id="checklist-panel" class="hidden border-b border-brand-border bg-brand-dark/70 select-none">
+                <div class="flex items-center justify-between px-3 py-2 text-xs font-bold text-cyan-400 cursor-pointer hover:bg-brand-card/50 transition" onclick="toggleChecklistVisibility()">
+                    <span class="flex items-center gap-1.5">
+                        <i class="fa-solid fa-list-check"></i>
+                        <span>Roteiro de Produção & Checklist</span>
+                    </span>
+                    <div class="flex items-center gap-2">
+                        <span id="checklist-counter" class="text-[10px] text-gray-400 font-mono">0 etapas</span>
+                        <i class="fa-solid fa-chevron-down text-[10px] text-gray-400" id="checklist-toggle-icon"></i>
+                    </div>
+                </div>
+                <div id="checklist-items" class="hidden px-3 pb-2.5 space-y-1.5 text-xs text-gray-300 max-h-36 overflow-y-auto pr-1">
+                    <!-- Items injetados dinamicamente -->
+                </div>
+            </div>
+
+            <!-- Chat Messages Scroll Container -->
+            <div id="chat-container" class="flex-1 overflow-y-auto p-4 flex flex-col gap-3.5">
+                
+                <!-- Initial Welcome Message -->
+                <div class="flex flex-col gap-1 items-start text-xs w-full">
+                    <span class="text-[11px] text-cyan-400 font-bold flex items-center gap-1">
+                        <i class="fa-solid fa-shield-halved"></i> Sistema PladixAgentIA
+                    </span>
+                    <div class="bg-brand-card border border-brand-border text-gray-300 p-3 rounded-xl rounded-tl-none w-full shadow-md space-y-2">
+                        <p class="font-semibold text-white">🚀 Bem-vindo ao PladixAgentIA Supremo IDE!</p>
+                        <p class="text-gray-400 leading-relaxed text-[11px]">
+                            O agente autônomo está pronto. Cole seus cURLs ou anexe o <b>conteudo.txt</b> para produzir a API PHP completa com tratamento de cookies, tokens e salvamento automático.
+                        </p>
+                        <div class="grid grid-cols-2 gap-1.5 pt-1 text-[11px]">
+                            <button onclick="loadConteudoTxt()" class="bg-brand-panel p-2 rounded border border-brand-border hover:border-amber-500/50 flex items-center gap-2 text-left transition">
+                                <i class="fa-solid fa-paperclip text-amber-400"></i>
+                                <span>Anexar <b>conteudo.txt</b></span>
+                            </button>
+                            <button onclick="openWorkspaceModal()" class="bg-brand-panel p-2 rounded border border-brand-border hover:border-cyan-500/50 flex items-center gap-2 text-left transition">
+                                <i class="fa-solid fa-folder-open text-cyan-400"></i>
+                                <span>Mudar ou criar pasta</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Quick Command Presets Bar -->
+            <div class="px-3 pt-2 pb-1 border-t border-brand-border bg-brand-panel select-none">
+                <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                    <span class="flex items-center gap-1"><i class="fa-solid fa-wand-magic-sparkles text-cyan-400"></i> Comandos Rápidos & Presets:</span>
+                    <span class="text-[9px] text-gray-400">1 clique</span>
+                </div>
+                <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
+                    <button onclick="applyPreset('build_api')" class="whitespace-nowrap px-2.5 py-1 rounded-md bg-brand-card hover:bg-cyan-950/60 border border-brand-border hover:border-cyan-700 text-gray-200 hover:text-cyan-300 transition flex items-center gap-1.5 text-[11px] font-medium">
+                        <i class="fa-solid fa-cubes text-cyan-400"></i> Construir API PHP
+                    </button>
+                    <button onclick="applyPreset('process_txt')" class="whitespace-nowrap px-2.5 py-1 rounded-md bg-brand-card hover:bg-amber-950/60 border border-brand-border hover:border-amber-700 text-gray-200 hover:text-amber-300 transition flex items-center gap-1.5 text-[11px] font-medium">
+                        <i class="fa-solid fa-file-invoice text-amber-400"></i> Processar conteudo.txt
+                    </button>
+                    <button onclick="applyPreset('audit_code')" class="whitespace-nowrap px-2.5 py-1 rounded-md bg-brand-card hover:bg-purple-950/60 border border-brand-border hover:border-purple-700 text-gray-200 hover:text-purple-300 transition flex items-center gap-1.5 text-[11px] font-medium">
+                        <i class="fa-solid fa-shield-virus text-purple-400"></i> Auditar & Otimizar
+                    </button>
+                    <button onclick="applyPreset('extract_tokens')" class="whitespace-nowrap px-2.5 py-1 rounded-md bg-brand-card hover:bg-blue-950/60 border border-brand-border hover:border-blue-700 text-gray-200 hover:text-blue-300 transition flex items-center gap-1.5 text-[11px] font-medium">
+                        <i class="fa-solid fa-key text-blue-400"></i> Tokens & Cookies
+                    </button>
+                </div>
+            </div>
+
+            <!-- Attached File Pill (Visible when file is attached) -->
+            <div id="attachment-bar" class="hidden px-3 py-1.5 bg-brand-card/90 border-t border-brand-border flex items-center justify-between select-none">
+                <div class="flex items-center gap-2 text-xs truncate">
+                    <i class="fa-solid fa-paperclip text-amber-400"></i>
+                    <span id="attached-file-name" class="font-bold text-gray-200 truncate">arquivo.txt</span>
+                    <span id="attached-file-size" class="text-[10px] text-gray-400">(0 KB)</span>
+                    <button onclick="previewAttachedFile()" class="text-[10px] text-cyan-400 hover:underline ml-1">Ver Conteúdo</button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="sendPromptImmediateWithAttachment()" class="px-2 py-0.5 rounded bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-[11px] transition shadow">
+                        Produzir Imediatamente 🚀
+                    </button>
+                    <button onclick="removeAttachment()" class="text-gray-400 hover:text-red-400 p-1 transition" title="Remover anexo">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chat Input Area -->
+            <div class="p-3 border-t border-brand-border bg-brand-panel">
+                <div class="relative bg-brand-dark rounded-xl border border-brand-border focus-within:border-brand-cyan transition shadow-inner">
+                    <textarea 
+                        id="chat-input" 
+                        rows="3" 
+                        placeholder="Cole suas etapas cURL, código PHP, instruções ou anexe um arquivo TXT... (Ctrl+Enter para Enviar)" 
+                        class="w-full bg-transparent p-3 text-xs text-gray-200 outline-none resize-none font-mono"
+                    ></textarea>
+                    
+                    <!-- Bottom Action Controls -->
+                    <div class="flex items-center justify-between px-3 py-2 border-t border-brand-border/40 select-none">
+                        
+                        <!-- Left Action Buttons -->
+                        <div class="flex items-center gap-2">
+                            <!-- Hidden HTML File Input -->
+                            <input type="file" id="html-file-picker" accept=".txt,.log,.php,.py,.json,.html,.css,.js,.md,.bat" class="hidden" onchange="handleHtmlFileSelect(this)">
+                            
+                            <!-- Attach File Button -->
+                            <button onclick="triggerFileAttachment()" class="px-2.5 py-1 rounded-md bg-brand-card hover:bg-brand-hover text-gray-300 hover:text-white border border-brand-border text-xs flex items-center gap-1.5 transition" title="Anexar arquivo TXT ou código">
+                                <i class="fa-solid fa-paperclip text-amber-400 text-xs"></i>
+                                <span class="font-medium text-[11px]">Anexar TXT</span>
+                            </button>
+
+                            <!-- Quick Load conteudo.txt -->
+                            <button onclick="loadConteudoTxt()" class="px-2 py-1 rounded-md bg-brand-card hover:bg-brand-hover text-gray-300 hover:text-amber-300 border border-brand-border text-xs flex items-center gap-1 transition" title="Carregar conteudo.txt do Workspace">
+                                <i class="fa-solid fa-file-lines text-cyan-400 text-xs"></i>
+                                <span class="font-medium text-[11px]">conteudo.txt</span>
+                            </button>
+                        </div>
+
+                        <!-- Right Send & Stop Controls -->
+                        <div class="flex items-center gap-2">
+                            <!-- Stop Button in Input -->
+                            <button id="btn-stop-chat-input" onclick="stopGeneration()" class="hidden bg-red-600/90 hover:bg-red-500 text-white font-bold text-xs py-1.5 px-3 rounded-lg transition shadow flex items-center gap-1.5 animate-pulse" title="Interromper agente autônomo">
+                                <i class="fa-solid fa-stop text-xs"></i>
+                                <span>Parar</span>
+                            </button>
+
+                            <span class="text-[10px] text-gray-400 hidden sm:inline">Ctrl+Enter</span>
+                            <button id="btn-send" onclick="sendPrompt()" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-xs py-1.5 px-4 rounded-lg transition shadow-md glow-cyan flex items-center gap-1.5">
+                                <span>Enviar</span>
+                                <i class="fa-solid fa-paper-plane text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL: CONFIGURAÇÕES & CREDENCIAIS -->
+    <!-- ========================================== -->
+    <div id="modal-settings" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-brand-card border border-brand-border w-full max-w-xl rounded-2xl shadow-2xl p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-brand-border pb-3">
+                <div class="flex items-center gap-2 text-white font-bold text-sm">
+                    <i class="fa-solid fa-gear text-cyan-400"></i>
+                    <span>Configurações & Credenciais da IDE</span>
+                </div>
+                <button onclick="closeSettingsModal()" class="text-gray-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- DeepSeek Bearer Token -->
+            <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                    <label class="text-xs font-semibold text-gray-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-key text-amber-400"></i>
+                        <span>DeepSeek Bearer Token / Autenticação:</span>
+                    </label>
+                    <span id="settings-auth-badge" class="text-[10px] px-2 py-0.5 rounded font-medium bg-emerald-950 text-emerald-400 border border-emerald-800">
+                        Autenticado ✓
+                    </span>
+                </div>
+                <div class="flex gap-2">
+                    <input id="input-settings-token" type="password" placeholder="Cole seu Bearer Token (ex: eyJhbGci...)" class="flex-1 bg-brand-dark border border-brand-border rounded-xl px-3 py-2 text-xs text-gray-200 outline-none focus:border-brand-cyan transition font-mono">
+                    <button onclick="toggleTokenVisibility()" class="px-3 bg-brand-panel hover:bg-brand-hover text-gray-400 rounded-xl border border-brand-border text-xs" title="Ver/Ocultar Token">
+                        <i class="fa-solid fa-eye" id="token-eye-icon"></i>
+                    </button>
+                </div>
+                <div id="token-test-status" class="hidden text-[11px] p-2.5 rounded-xl font-mono mt-1 transition"></div>
+                <p class="text-[10px] text-gray-400">Obtido em chat.deepseek.com na aba Rede (Network) ou via Bearer de autorização.</p>
+            </div>
+
+            <!-- PHP Environment (XAMPP / PATH) -->
+            <div class="space-y-1.5 pt-2 border-t border-brand-border/60">
+                <div class="flex items-center justify-between">
+                    <label class="text-xs font-semibold text-gray-200 flex items-center gap-1.5">
+                        <i class="fa-brands fa-php text-purple-400 text-sm"></i>
+                        <span>Caminho do Interpretador PHP (php.exe):</span>
+                    </label>
+                    <span id="settings-php-badge" class="text-[10px] px-2 py-0.5 rounded font-medium bg-emerald-950 text-emerald-400 border border-emerald-800">
+                        PHP Detectado ✓
+                    </span>
+                </div>
+                <div class="flex gap-2">
+                    <input id="input-settings-php" type="text" placeholder="Ex: C:\xampp\php\php.exe" class="flex-1 bg-brand-dark border border-brand-border rounded-xl px-3 py-2 text-xs text-gray-200 outline-none focus:border-brand-cyan transition font-mono">
+                    <button onclick="autoDetectPhp()" class="px-3 py-2 bg-purple-600/30 hover:bg-purple-600/40 text-purple-300 rounded-xl border border-purple-500/50 text-xs font-semibold transition" title="Procurar XAMPP no Computador">
+                        Auto-Detectar
+                    </button>
+                    <button onclick="testPhpAction()" class="px-3 py-2 bg-emerald-600/30 hover:bg-emerald-600/40 text-emerald-300 rounded-xl border border-emerald-500/50 text-xs font-semibold transition" title="Testar chamada com php -v">
+                        <i class="fa-solid fa-play text-[10px]"></i> Testar PHP
+                    </button>
+                </div>
+                <div id="settings-php-version" class="text-[11px] text-emerald-400 font-mono flex items-center gap-1.5 mt-1">PHP 8.0.30 (via XAMPP)</div>
+            </div>
+
+            <!-- Python Environment -->
+            <div class="space-y-1.5 pt-2 border-t border-brand-border/60">
+                <label class="text-xs font-semibold text-gray-200 flex items-center gap-1.5">
+                    <i class="fa-brands fa-python text-blue-400"></i>
+                    <span>Ambiente Python Local:</span>
+                </label>
+                <div id="settings-python-path" class="text-[11px] text-gray-400 font-mono bg-brand-dark p-2 rounded-lg border border-brand-border truncate">
+                    python
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex justify-between items-center pt-3 border-t border-brand-border">
+                <button id="btn-validate-token" onclick="validateTokenAction()" class="px-3.5 py-1.5 bg-brand-panel hover:bg-brand-hover border border-brand-border hover:border-cyan-500/50 text-cyan-400 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-bolt text-xs" id="btn-validate-token-icon"></i>
+                    <span id="btn-validate-token-label">Testar Conexão DeepSeek</span>
+                </button>
+                <div class="flex gap-2">
+                    <button onclick="closeSettingsModal()" class="px-4 py-1.5 bg-brand-panel hover:bg-brand-hover border border-brand-border text-gray-300 rounded-xl text-xs transition">
+                        Cancelar
+                    </button>
+                    <button onclick="saveSettingsAction()" class="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl text-xs transition shadow glow-cyan">
+                        Salvar Configurações
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL: GERENCIADOR DE WORKSPACE -->
+    <!-- ========================================== -->
+    <div id="modal-workspace" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-brand-card border border-brand-border w-full max-w-lg rounded-2xl shadow-2xl p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-brand-border pb-3">
+                <div class="flex items-center gap-2 text-white font-bold text-sm">
+                    <i class="fa-solid fa-folder-tree text-cyan-400"></i>
+                    <span>Gerenciar Pasta de Trabalho (Workspace)</span>
+                </div>
+                <button onclick="closeWorkspaceModal()" class="text-gray-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Current Workspace -->
+            <div class="bg-brand-dark p-3 rounded-xl border border-brand-border">
+                <span class="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Workspace Ativo Atual:</span>
+                <p id="modal-current-ws" class="text-xs text-cyan-300 font-mono mt-1 break-all select-all">...</p>
+            </div>
+
+            <!-- Option 1: Native Windows Folder Picker -->
+            <div class="space-y-1.5">
+                <label class="text-xs font-semibold text-gray-200">1. Selecionar pasta existente no computador:</label>
+                <button onclick="browseNativeWorkspace()" class="w-full py-2.5 px-4 rounded-xl bg-brand-panel hover:bg-brand-hover border border-brand-border text-white text-xs font-medium flex items-center justify-center gap-2 transition shadow">
+                    <i class="fa-solid fa-magnifying-glass text-cyan-400"></i>
+                    <span>Procurar Pasta no Windows (Explorer)...</span>
+                </button>
+            </div>
+
+            <!-- Option 2: Enter path manually -->
+            <div class="space-y-1.5">
+                <label class="text-xs font-semibold text-gray-200">2. Ou cole o caminho completo da pasta:</label>
+                <div class="flex gap-2">
+                    <input id="input-ws-path" type="text" placeholder="Ex: C:\Users\luking\Desktop\MinhaNovaApi" class="flex-1 bg-brand-dark border border-brand-border rounded-xl px-3 py-2 text-xs text-gray-200 outline-none focus:border-brand-cyan transition font-mono">
+                    <button onclick="setCustomWorkspace()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition">
+                        Definir
+                    </button>
+                </div>
+            </div>
+
+            <!-- Option 3: Create Subfolder -->
+            <div class="space-y-1.5 pt-2 border-t border-brand-border/60">
+                <label class="text-xs font-semibold text-gray-200">3. Criar uma nova pasta para o projeto:</label>
+                <div class="flex gap-2">
+                    <input id="input-new-folder" type="text" placeholder="Nome da nova pasta (ex: api_ajastore)" class="flex-1 bg-brand-dark border border-brand-border rounded-xl px-3 py-2 text-xs text-gray-200 outline-none focus:border-brand-cyan transition">
+                    <button onclick="createNewFolder()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus text-xs"></i> Criar & Abrir
+                    </button>
+                </div>
+            </div>
+
+            <!-- Close Button -->
+            <div class="flex justify-end pt-2">
+                <button onclick="closeWorkspaceModal()" class="px-4 py-1.5 bg-brand-panel hover:bg-brand-hover border border-brand-border text-gray-300 rounded-xl text-xs transition">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL: PREVIEW DE ARQUIVO ANEXADO -->
+    <!-- ========================================== -->
+    <div id="modal-preview" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-brand-card border border-brand-border w-full max-w-3xl rounded-2xl shadow-2xl p-5 flex flex-col max-h-[85vh] space-y-3">
+            <div class="flex items-center justify-between border-b border-brand-border pb-3">
+                <div class="flex items-center gap-2 text-white font-bold text-sm">
+                    <i class="fa-solid fa-file-code text-amber-400"></i>
+                    <span id="preview-modal-title">Pré-visualização do Anexo</span>
+                </div>
+                <button onclick="closePreviewModal()" class="text-gray-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="flex-1 overflow-hidden bg-brand-dark rounded-xl border border-brand-border p-3">
+                <textarea id="preview-modal-content" readonly class="w-full h-full bg-transparent text-xs text-gray-200 font-mono outline-none resize-none"></textarea>
+            </div>
+            <div class="flex justify-between items-center pt-2">
+                <span id="preview-modal-stats" class="text-xs text-gray-400">0 linhas</span>
+                <div class="flex gap-2">
+                    <button onclick="closePreviewModal()" class="px-4 py-1.5 bg-brand-panel hover:bg-brand-hover border border-brand-border text-gray-300 rounded-xl text-xs transition">
+                        Fechar
+                    </button>
+                    <button onclick="sendPromptImmediateWithAttachment(); closePreviewModal();" class="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-xl text-xs transition shadow glow-cyan">
+                        Iniciar Produção com este Arquivo 🚀
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- FLOATING TOAST NOTIFICATIONS -->
+    <!-- ========================================== -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- ========================================== -->
+    <!-- JAVASCRIPT APPLICATION CORE -->
+    <!-- ========================================== -->
+    <script>
+        let ws;
+        let editor;
+        let currentFile = null;
+        let currentFileData = { content: '', language: 'php' };
+        let allWorkspaceFiles = [];
+        let attachedFile = null;
+        let isPladixMode = true;
+        let isGenerating = false;
+        let currentRole = 'pladix_coder';
+        let currentWorkspace = '';
+        let isRootWorkspace = false;
+        let currentParentFolder = '';
+
+        // Configure Marked.js
+        marked.setOptions({ breaks: true, gfm: true });
+
+        // Initialize Monaco Editor
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' }});
+        require(['vs/editor/editor.main'], function() {
+            editor = monaco.editor.create(document.getElementById('monaco-container'), {
+                value: '// ==========================================\n// PladixAgentIA - Supremo IDE v2.0\n// Desenvolvido por PladixOficial\n// ==========================================\n\n// Aguardando abertura de arquivo ou produção autônoma...',
+                language: 'php',
+                theme: 'vs-dark',
+                automaticLayout: true,
+                minimap: { enabled: true },
+                fontSize: 13,
+                fontFamily: "'JetBrains Mono', 'Consolas', monospace",
+                bracketPairColorization: { enabled: true },
+                formatOnPaste: true,
+                smoothScrolling: true,
+                cursorBlinking: 'smooth',
+                lineHeight: 20
+            });
+
+            // Editor Cursor Listener
+            editor.onDidChangeCursorPosition(e => {
+                document.getElementById('status-cursor').innerText = `Linha ${e.position.lineNumber}, Coluna ${e.position.column}`;
+            });
+
+            // Save shortcut (Ctrl+S)
+            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+                saveCurrentFile();
+            });
+
+            // Run shortcut (F5)
+            editor.addCommand(monaco.KeyCode.F5, () => {
+                executeCurrentFile();
+            });
+
+            initWebSocket();
+        });
+
+        // Global Drag & Drop Setup
+        window.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            document.getElementById('drop-overlay').style.display = 'flex';
+        });
+        window.addEventListener('dragleave', (e) => {
+            if (e.clientX <= 0 || e.clientY <= 0 || e.clientX >= window.innerWidth || e.clientY >= window.innerHeight) {
+                document.getElementById('drop-overlay').style.display = 'none';
+            }
+        });
+        window.addEventListener('drop', (e) => {
+            e.preventDefault();
+            document.getElementById('drop-overlay').style.display = 'none';
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                readAndAttachLocalFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        // ==========================================
+        // WEBSOCKET COMMUNICATION
+        // ==========================================
+        function initWebSocket() {
+            ws = new WebSocket(`ws://${location.host}/ws`);
+            
+            ws.onopen = () => {
+                ws.send(JSON.stringify({ type: 'init' }));
+            };
+
+            ws.onclose = () => {
+                document.getElementById('status-indicator').innerHTML = '<div class="w-2 h-2 rounded-full bg-red-500"></div> <span class="text-red-400 text-[11px]">Reconectando...</span>';
+                setTimeout(initWebSocket, 2500);
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleServerMessage(data);
+            };
+        }
+
+        function handleServerMessage(data) {
+            switch(data.type) {
+                case 'workspace_info':
+                    updateWorkspaceInfo(data);
+                    break;
+                case 'file_tree':
+                    allWorkspaceFiles = data.tree || [];
+                    renderFileTree(allWorkspaceFiles);
+                    break;
+                case 'file_content':
+                    displayFileInEditor(data.path, data.rel_path, data.content, data.language);
+                    break;
+                case 'file_saved':
+                    showToast(`Arquivo salvo com sucesso!`, 'success');
+                    document.getElementById('status-save-state').innerHTML = '<span class="text-emerald-400 flex items-center gap-1"><i class="fa-solid fa-circle text-[6px]"></i> Salvo</span>';
+                    break;
+                case 'syntax_result':
+                    if (data.syntax && data.syntax.valid) {
+                        showToast(`Sintaxe ${data.syntax.language} 100% válida!`, 'success');
+                    } else if (data.syntax && data.syntax.warning) {
+                        showToast(data.syntax.warning, 'warning');
+                    } else {
+                        const err = data.syntax ? data.syntax.error : 'Erro de sintaxe';
+                        showToast(`Erro de sintaxe: ${err}`, 'error');
+                    }
+                    break;
+                case 'file_attached':
+                    setAttachedFile(data.name, data.path, data.content, data.size);
+                    break;
+                case 'chat_chunk':
+                    appendStreamChunk(data.content, data.is_think);
+                    break;
+                case 'checklist_update':
+                    renderChecklist(data.items);
+                    break;
+                case 'tool_executed':
+                    renderToolExecution(data.tool);
+                    break;
+                case 'autonomous_step_notice':
+                    renderAutonomousStepNotice(data);
+                    break;
+                case 'chat_done':
+                    finalizeStreamChunk(data.executed_tools_count, data.suggestions, data.stopped);
+                    break;
+                case 'system_msg':
+                    appendMessage('Sistema', data.content, 'system');
+                    break;
+                case 'execution_result':
+                    displayExecutionResult(data);
+                    break;
+                case 'settings_info':
+                    populateSettingsModal(data);
+                    break;
+                case 'auto_detect_php_result':
+                    showToast(data.msg, data.success ? 'success' : 'warning');
+                    if (data.success) {
+                        document.getElementById('input-settings-php').value = data.path;
+                        document.getElementById('settings-php-version').innerText = data.version;
+                    }
+                    break;
+                case 'test_php_result':
+                    handleTestPhpResult(data);
+                    break;
+                case 'validate_token_result':
+                    handleValidateTokenResult(data);
+                    break;
+            }
+        }
+
+        // ==========================================
+        // WORKSPACE & FILES MANAGEMENT
+        // ==========================================
+        function updateWorkspaceInfo(info) {
+            currentWorkspace = info.workspace;
+            isRootWorkspace = info.is_root;
+
+            document.getElementById('header-ws-name').innerText = info.name || 'Workspace';
+            document.getElementById('header-ws-name').title = info.workspace;
+            document.getElementById('explorer-folder-name').innerText = info.name || 'Workspace';
+            document.getElementById('ws-full-path').innerText = info.workspace;
+            document.getElementById('modal-current-ws').innerText = info.workspace;
+            
+            // Pladix Mode indicator
+            isPladixMode = info.pladix_mode;
+            updatePladixModeUI();
+
+            // Active Role
+            if (info.current_role) {
+                currentRole = info.current_role;
+                document.getElementById('agent-role-select').value = currentRole;
+            }
+
+            // PHP Environment status in status bar
+            if (info.php_detected) {
+                document.getElementById('status-php-env').innerText = `PHP: XAMPP Detectado ✓`;
+                document.getElementById('status-php-env').className = 'text-emerald-400 font-semibold hidden sm:inline';
+            } else {
+                document.getElementById('status-php-env').innerText = `PHP: Não configurado`;
+                document.getElementById('status-php-env').className = 'text-amber-400 hidden sm:inline';
+            }
+
+            // Quick button for conteudo.txt
+            const badge = document.getElementById('conteudo-quick-badge');
+            if (info.has_conteudo_txt) {
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.remove('hidden');
+            }
+        }
+
+        function renderFileTree(items) {
+            const container = document.getElementById('file-explorer');
+            container.innerHTML = '';
+            document.getElementById('ws-files-count').innerText = `${items.length} itens`;
+
+            if (items.length === 0) {
+                container.innerHTML = `
+                    <div class="p-4 text-center text-gray-400 text-xs space-y-2">
+                        <i class="fa-regular fa-folder-open text-3xl text-gray-500 mb-1"></i>
+                        <p class="font-medium text-gray-300">Pasta vazia.</p>
+                        <button onclick="copyConteudoToWorkspace()" class="w-full py-1.5 px-2 bg-brand-card hover:bg-brand-hover border border-brand-border text-cyan-400 rounded text-[11px] font-semibold transition">
+                            <i class="fa-solid fa-file-import"></i> Copiar conteudo.txt para cá
+                        </button>
+                        <button onclick="promptCreateFile()" class="w-full py-1 px-2 bg-brand-dark hover:bg-brand-hover border border-brand-border text-gray-300 rounded text-[11px] transition">
+                            <i class="fa-solid fa-plus"></i> Criar api.php
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            items.forEach(item => {
+                const row = document.createElement('div');
+                const isSelected = currentFile === item.path;
+                
+                if (item.is_dir) {
+                    // Folder item
+                    row.className = `py-1.5 px-2 rounded-md cursor-pointer flex items-center justify-between group transition hover:bg-brand-hover text-gray-200`;
+                    row.innerHTML = `
+                        <div class="flex items-center gap-2 truncate">
+                            <i class="fa-solid fa-folder text-amber-400 text-xs"></i>
+                            <span class="font-semibold truncate">${item.name}</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <span class="text-[10px] text-gray-500">${item.count}</span>
+                            <button onclick="event.stopPropagation(); deleteFile('${item.path}')" class="opacity-0 group-hover:opacity-100 hover:text-red-400 text-gray-500 p-0.5" title="Excluir Pasta">
+                                <i class="fa-solid fa-trash-can text-[10px]"></i>
+                            </button>
+                        </div>
+                    `;
+                    row.onclick = () => openSubfolder(item.path);
+                } else {
+                    // File item
+                    let badge = '<span class="px-1 py-0.2 rounded text-[9px] bg-gray-800 text-gray-400 font-bold">TXT</span>';
+                    if (item.ext === '.php') badge = '<span class="px-1 py-0.2 rounded text-[9px] bg-purple-950 text-purple-400 border border-purple-800 font-bold">PHP</span>';
+                    else if (item.ext === '.py') badge = '<span class="px-1 py-0.2 rounded text-[9px] bg-blue-950 text-blue-400 border border-blue-800 font-bold">PY</span>';
+                    else if (item.ext === '.txt') badge = '<span class="px-1 py-0.2 rounded text-[9px] bg-amber-950 text-amber-400 border border-amber-800 font-bold">TXT</span>';
+                    else if (item.ext === '.json') badge = '<span class="px-1 py-0.2 rounded text-[9px] bg-yellow-950 text-yellow-400 border border-yellow-800 font-bold">JSON</span>';
+                    else if (item.ext === '.md') badge = '<span class="px-1 py-0.2 rounded text-[9px] bg-cyan-950 text-cyan-400 border border-cyan-800 font-bold">MD</span>';
+
+                    row.className = `py-1 px-2 rounded-md cursor-pointer flex items-center justify-between group transition ${isSelected ? 'bg-brand-card text-cyan-400 font-semibold border border-brand-border' : 'hover:bg-brand-hover text-gray-300'}`;
+                    row.innerHTML = `
+                        <div class="flex items-center gap-2 truncate">
+                            ${badge}
+                            <span class="truncate" title="${item.rel_path}">${item.name}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[10px] text-gray-500 opacity-0 group-hover:opacity-100 transition">${formatBytes(item.size)}</span>
+                            <button onclick="event.stopPropagation(); deleteFile('${item.path}')" class="opacity-0 group-hover:opacity-100 hover:text-red-400 text-gray-500 p-0.5" title="Excluir Arquivo">
+                                <i class="fa-solid fa-trash-can text-[10px]"></i>
+                            </button>
+                        </div>
+                    `;
+                    row.onclick = () => openFile(item.path);
+                }
+
+                container.appendChild(row);
+            });
+        }
+
+        function filterFiles(query) {
+            const q = query.toLowerCase();
+            const filtered = allWorkspaceFiles.filter(f => f.name.toLowerCase().includes(q));
+            renderFileTree(filtered);
+        }
+
+        function openFile(path) {
+            ws.send(JSON.stringify({ type: 'open_file', path: path }));
+        }
+
+        function openSubfolder(folderPath) {
+            ws.send(JSON.stringify({ type: 'set_workspace', path: folderPath }));
+            document.getElementById('btn-up-folder').classList.remove('hidden');
+        }
+
+        function navigateUpFolder() {
+            // Navega para o diretório pai
+            const parts = currentWorkspace.replace(/\\/g, '/').split('/');
+            if (parts.length > 1) {
+                parts.pop();
+                const parentPath = parts.join('/');
+                ws.send(JSON.stringify({ type: 'set_workspace', path: parentPath }));
+            }
+        }
+
+        function copyConteudoToWorkspace() {
+            ws.send(JSON.stringify({ type: 'copy_conteudo_to_workspace' }));
+        }
+
+        function displayFileInEditor(path, relPath, content, language) {
+            currentFile = path;
+            currentFileData = { content: content, language: language || 'plaintext' };
+
+            const fileName = relPath ? relPath.split('/').pop() : path.split('/').pop().split('\\').pop();
+            const tabs = document.getElementById('editor-tabs');
+            tabs.innerHTML = `
+                <div class="px-3 py-1.5 bg-brand-dark border-t-2 border-brand-cyan text-cyan-400 rounded-t flex items-center gap-2 font-medium shadow-sm">
+                    <i class="fa-solid fa-file-code text-xs"></i>
+                    <span class="truncate max-w-[200px]" title="${relPath || path}">${fileName}</span>
+                    <button onclick="closeCurrentTab()" class="hover:text-white text-gray-400 text-xs ml-1">×</button>
+                </div>
+            `;
+
+            if (editor) {
+                editor.setValue(content);
+                monaco.editor.setModelLanguage(editor.getModel(), language || 'plaintext');
+            }
+
+            document.getElementById('status-lang').innerText = (language || 'PLAINTEXT').toUpperCase();
+            document.getElementById('status-save-state').innerHTML = '<span class="text-emerald-400 flex items-center gap-1"><i class="fa-solid fa-circle text-[6px]"></i> Salvo</span>';
+            renderFileTree(allWorkspaceFiles);
+        }
+
+        function saveCurrentFile() {
+            if (!currentFile || !editor) return;
+            const content = editor.getValue();
+            ws.send(JSON.stringify({
+                type: 'save_file',
+                path: currentFile,
+                content: content
+            }));
+        }
+
+        function checkSyntaxCurrentFile() {
+            if (!currentFile) {
+                showToast('Nenhum arquivo aberto para validar!', 'warning');
+                return;
+            }
+            saveCurrentFile();
+            ws.send(JSON.stringify({ type: 'check_syntax', path: currentFile }));
+        }
+
+        function executeCurrentFile() {
+            if (!currentFile) {
+                showToast('Abra um arquivo PHP ou Python para executar!', 'warning');
+                return;
+            }
+            saveCurrentFile();
+            showToast('Executando script...', 'info');
+            ws.send(JSON.stringify({ type: 'execute_file', path: currentFile }));
+        }
+
+        function displayExecutionResult(res) {
+            const drawer = document.getElementById('terminal-drawer');
+            const content = document.getElementById('terminal-content');
+            const statusTag = document.getElementById('terminal-status-tag');
+            const elapsed = document.getElementById('terminal-elapsed');
+
+            drawer.classList.remove('hidden');
+            elapsed.innerText = `${res.elapsed}s`;
+
+            if (res.success) {
+                statusTag.className = 'text-[9px] px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 font-mono';
+                statusTag.innerText = `CÓDIGO: ${res.returncode} (OK)`;
+            } else {
+                statusTag.className = 'text-[9px] px-1.5 py-0.2 rounded bg-red-950 text-red-400 border border-red-800 font-mono';
+                statusTag.innerText = `CÓDIGO: ${res.returncode} (ERRO)`;
+            }
+
+            let log = `> Executando: ${res.path.split('/').pop()}\n`;
+            if (res.stdout) log += `\n--- SAÍDA (STDOUT) ---\n${res.stdout}\n`;
+            if (res.stderr) log += `\n--- ERROS (STDERR) ---\n${res.stderr}\n`;
+            if (!res.stdout && !res.stderr) log += `\n(Script executou com sucesso sem gerar saídas no console)\n`;
+
+            content.innerText = log;
+            content.scrollTop = content.scrollHeight;
+        }
+
+        function toggleTerminalDrawer() {
+            document.getElementById('terminal-drawer').classList.toggle('hidden');
+        }
+
+        function copyEditorCode() {
+            if (!editor) return;
+            const text = editor.getValue();
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Código copiado!', 'success');
+            });
+        }
+
+        function closeCurrentTab() {
+            currentFile = null;
+            document.getElementById('editor-tabs').innerHTML = '';
+            if (editor) {
+                editor.setValue('// Nenhum arquivo aberto.');
+            }
+        }
+
+        function deleteFile(path) {
+            const name = path.split('/').pop().split('\\').pop();
+            if (confirm(`Tem certeza que deseja excluir '${name}'?`)) {
+                ws.send(JSON.stringify({ type: 'delete_file', path: path }));
+            }
+        }
+
+        function refreshFileTree() {
+            ws.send(JSON.stringify({ type: 'refresh_files' }));
+        }
+
+        // ==========================================
+        // SETTINGS & CREDENTIALS MODAL
+        // ==========================================
+        function openSettingsModal() {
+            ws.send(JSON.stringify({ type: 'get_settings' }));
+            document.getElementById('modal-settings').classList.remove('hidden');
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('modal-settings').classList.add('hidden');
+        }
+
+        function populateSettingsModal(data) {
+            document.getElementById('input-settings-token').value = data.token || '';
+            document.getElementById('input-settings-php').value = data.php_path || '';
+            document.getElementById('settings-php-version').innerText = data.php_version || 'PHP não detectado';
+            document.getElementById('settings-python-path').innerText = `${data.python_path} (${data.python_version})`;
+            
+            const badge = document.getElementById('settings-auth-badge');
+            if (data.is_authenticated) {
+                badge.className = 'text-[10px] px-2 py-0.5 rounded font-medium bg-emerald-950 text-emerald-400 border border-emerald-800';
+                badge.innerText = 'Autenticado ✓';
+            } else {
+                badge.className = 'text-[10px] px-2 py-0.5 rounded font-medium bg-amber-950 text-amber-400 border border-amber-800';
+                badge.innerText = 'Não Autenticado';
+            }
+        }
+
+        function saveSettingsAction() {
+            const token = document.getElementById('input-settings-token').value.trim();
+            const phpPath = document.getElementById('input-settings-php').value.trim();
+            ws.send(JSON.stringify({
+                type: 'save_settings',
+                token: token,
+                php_path: phpPath
+            }));
+            closeSettingsModal();
+        }
+
+        function autoDetectPhp() {
+            ws.send(JSON.stringify({ type: 'auto_detect_php' }));
+        }
+
+        function validateTokenAction() {
+            const token = document.getElementById('input-settings-token').value.trim();
+            if (!token) {
+                showToast('Informe o token para testar!', 'warning');
+                return;
+            }
+            const btn = document.getElementById('btn-validate-token');
+            const icon = document.getElementById('btn-validate-token-icon');
+            const label = document.getElementById('btn-validate-token-label');
+            const statusDiv = document.getElementById('token-test-status');
+
+            if (btn) btn.disabled = true;
+            if (icon) icon.className = 'fa-solid fa-spinner fa-spin text-cyan-400 text-xs';
+            if (label) label.innerText = 'Testando conexão...';
+            if (statusDiv) {
+                statusDiv.className = 'text-[11px] p-2 rounded-xl font-mono mt-1 bg-cyan-950/40 text-cyan-300 border border-cyan-800/60 flex items-center gap-2';
+                statusDiv.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-cyan-400"></i> Conectando à API DeepSeek...`;
+                statusDiv.classList.remove('hidden');
+            }
+
+            ws.send(JSON.stringify({ type: 'validate_token', token: token }));
+        }
+
+        function handleValidateTokenResult(data) {
+            const btn = document.getElementById('btn-validate-token');
+            const icon = document.getElementById('btn-validate-token-icon');
+            const label = document.getElementById('btn-validate-token-label');
+            const statusDiv = document.getElementById('token-test-status');
+            const badge = document.getElementById('settings-auth-badge');
+
+            if (btn) btn.disabled = false;
+            if (icon) icon.className = 'fa-solid fa-bolt text-xs';
+            if (label) label.innerText = 'Testar Conexão DeepSeek';
+
+            if (data.valid) {
+                if (badge) {
+                    badge.className = 'text-[10px] px-2 py-0.5 rounded font-medium bg-emerald-950 text-emerald-400 border border-emerald-800';
+                    badge.innerText = 'Autenticado ✓';
+                }
+                if (statusDiv) {
+                    statusDiv.className = 'text-[11px] p-2.5 rounded-xl font-mono mt-1 bg-emerald-950/50 text-emerald-300 border border-emerald-800 flex items-center gap-2';
+                    statusDiv.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> <span>${data.msg}</span>`;
+                }
+                showToast(data.msg, 'success');
+            } else {
+                if (badge) {
+                    badge.className = 'text-[10px] px-2 py-0.5 rounded font-medium bg-red-950 text-red-400 border border-red-800';
+                    badge.innerText = 'Falha no Token';
+                }
+                if (statusDiv) {
+                    statusDiv.className = 'text-[11px] p-2.5 rounded-xl font-mono mt-1 bg-red-950/50 text-red-300 border border-red-800 flex items-center gap-2';
+                    statusDiv.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-400"></i> <span>${data.error || 'Token inválido ou expirado'}</span>`;
+                }
+                showToast(data.error || 'Falha ao autenticar', 'error');
+            }
+        }
+
+        function testPhpAction() {
+            const phpPath = document.getElementById('input-settings-php').value.trim();
+            const phpVerDiv = document.getElementById('settings-php-version');
+            if (phpVerDiv) {
+                phpVerDiv.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-cyan-400"></i> Testando chamada php -v...`;
+            }
+            ws.send(JSON.stringify({ type: 'test_php', path: phpPath }));
+        }
+
+        function handleTestPhpResult(data) {
+            const phpVerDiv = document.getElementById('settings-php-version');
+            const badge = document.getElementById('settings-php-badge');
+            if (data.success) {
+                if (badge) {
+                    badge.className = 'text-[10px] px-2 py-0.5 rounded font-medium bg-emerald-950 text-emerald-400 border border-emerald-800';
+                    badge.innerText = 'PHP Operacional ✓';
+                }
+                if (phpVerDiv) {
+                    phpVerDiv.className = 'text-[11px] text-emerald-400 font-mono flex items-center gap-1.5 mt-1';
+                    phpVerDiv.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> ${data.version || 'PHP operacional'}`;
+                }
+                showToast(data.msg, 'success');
+            } else {
+                if (badge) {
+                    badge.className = 'text-[10px] px-2 py-0.5 rounded font-medium bg-red-950 text-red-400 border border-red-800';
+                    badge.innerText = 'Erro no PHP';
+                }
+                if (phpVerDiv) {
+                    phpVerDiv.className = 'text-[11px] text-red-400 font-mono flex items-center gap-1.5 mt-1';
+                    phpVerDiv.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-400"></i> ${data.msg || 'Erro ao executar php.exe'}`;
+                }
+                showToast(data.msg, 'error');
+            }
+        }
+
+        function toggleTokenVisibility() {
+            const inp = document.getElementById('input-settings-token');
+            const icon = document.getElementById('token-eye-icon');
+            if (inp.type === 'password') {
+                inp.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                inp.type = 'password';
+                icon.className = 'fa-solid fa-eye';
+            }
+        }
+
+        // ==========================================
+        // WORKSPACE MODAL CONTROLS
+        // ==========================================
+        function openWorkspaceModal() {
+            document.getElementById('modal-workspace').classList.remove('hidden');
+        }
+
+        function closeWorkspaceModal() {
+            document.getElementById('modal-workspace').classList.add('hidden');
+        }
+
+        function browseNativeWorkspace() {
+            closeWorkspaceModal();
+            ws.send(JSON.stringify({ type: 'browse_workspace' }));
+        }
+
+        function setCustomWorkspace() {
+            const input = document.getElementById('input-ws-path');
+            const path = input.value.trim();
+            if (!path) return;
+            ws.send(JSON.stringify({ type: 'set_workspace', path: path }));
+            input.value = '';
+            closeWorkspaceModal();
+        }
+
+        function createNewFolder() {
+            const input = document.getElementById('input-new-folder');
+            const name = input.value.trim();
+            if (!name) return;
+            ws.send(JSON.stringify({ type: 'create_workspace_folder', folder_name: name, switch_to: true }));
+            input.value = '';
+            closeWorkspaceModal();
+        }
+
+        function promptCreateFile() {
+            const name = prompt('Nome do novo arquivo (ex: api.php ou index.js):');
+            if (name && name.trim()) {
+                ws.send(JSON.stringify({ type: 'create_file', filename: name.trim(), content: '' }));
+            }
+        }
+
+        function promptCreateFolder() {
+            const name = prompt('Nome da nova pasta:');
+            if (name && name.trim()) {
+                ws.send(JSON.stringify({ type: 'create_workspace_folder', folder_name: name.trim(), switch_to: false }));
+            }
+        }
+
+        function openInExplorer() {
+            ws.send(JSON.stringify({ type: 'open_in_explorer' }));
+        }
+
+        // ==========================================
+        // ATTACHMENT CONTROLS (.TXT / SCRIPTS)
+        // ==========================================
+        function triggerFileAttachment() {
+            document.getElementById('html-file-picker').click();
+        }
+
+        function handleHtmlFileSelect(input) {
+            if (input.files && input.files[0]) {
+                readAndAttachLocalFile(input.files[0]);
+                input.value = '';
+            }
+        }
+
+        function readAndAttachLocalFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const content = e.target.result;
+                setAttachedFile(file.name, file.name, content, file.size);
+                showToast(`Arquivo '${file.name}' anexado!`, 'success');
+            };
+            reader.readAsText(file);
+        }
+
+        function loadConteudoTxt() {
+            ws.send(JSON.stringify({ type: 'read_workspace_file', filename: 'conteudo.txt' }));
+        }
+
+        function setAttachedFile(name, path, content, size) {
+            attachedFile = { name: name, path: path, content: content, size: size };
+            const bar = document.getElementById('attachment-bar');
+            bar.classList.remove('hidden');
+            document.getElementById('attached-file-name').innerText = name;
+            document.getElementById('attached-file-size').innerText = `(${formatBytes(size)})`;
+            document.getElementById('chat-input').focus();
+        }
+
+        function removeAttachment() {
+            attachedFile = null;
+            document.getElementById('attachment-bar').classList.add('hidden');
+        }
+
+        function previewAttachedFile() {
+            if (!attachedFile) return;
+            document.getElementById('preview-modal-title').innerText = `Anexo: ${attachedFile.name}`;
+            document.getElementById('preview-modal-content').value = attachedFile.content;
+            document.getElementById('preview-modal-stats').innerText = `${attachedFile.content.split('\n').length} linhas | ${formatBytes(attachedFile.size)}`;
+            document.getElementById('modal-preview').classList.remove('hidden');
+        }
+
+        function closePreviewModal() {
+            document.getElementById('modal-preview').classList.add('hidden');
+        }
+
+        function sendPromptImmediateWithAttachment() {
+            if (!attachedFile) return;
+            const input = document.getElementById('chat-input');
+            if (!input.value.trim()) {
+                input.value = `Por favor, leia e processe o arquivo anexado (${attachedFile.name}) e implemente a solução/API completa em PHP. Salve o arquivo api.php diretamente na pasta atual do projeto.`;
+            }
+            sendPrompt();
+        }
+
+        // ==========================================
+        // QUICK PRESETS & COMMANDS
+        // ==========================================
+        function applyPreset(presetType) {
+            const input = document.getElementById('chat-input');
+            switch(presetType) {
+                case 'build_api':
+                    input.value = `ETAPA 1:\ncurl --url 'https://exemplo.com/api' \\\n  -H 'accept: application/json'\n\n[INSTRUÇÃO]: Construa a classe PHP completa com cURL multi-etapas, extração de tokens/cookies e retorno estruturado em api.php.`;
+                    break;
+                case 'process_txt':
+                    loadConteudoTxt();
+                    input.value = `Por favor, leia e processe o conteudo.txt anexado e gere a API PHP completa com todas as etapas. Salve em api.php.`;
+                    break;
+                case 'audit_code':
+                    input.value = `/audit Audite o código PHP atualmente aberto no editor, verificando tratamento de cookies e validação de dados.`;
+                    break;
+                case 'extract_tokens':
+                    input.value = `Analise os cabeçalhos e respostas dos cURLs fornecidos e extraia os tokens e cookies necessários.`;
+                    break;
+            }
+            input.focus();
+        }
+
+        function togglePladixMode() {
+            ws.send(JSON.stringify({ type: 'toggle_pladix' }));
+        }
+
+        function updatePladixModeUI() {
+            const btn = document.getElementById('btn-toggle-pladix');
+            const lbl = document.getElementById('pladix-mode-label');
+            if (isPladixMode) {
+                btn.className = 'flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-bold transition border border-amber-500/40 bg-amber-500/20 text-amber-300 glow-amber';
+                lbl.innerText = 'Pladix Coder: ATIVO 🔥';
+            } else {
+                btn.className = 'flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-medium transition border border-brand-border bg-brand-dark text-gray-400 hover:text-white';
+                lbl.innerText = 'Pladix Coder: OFF';
+            }
+        }
+
+        function changeAgentRole(roleId) {
+            ws.send(JSON.stringify({ type: 'select_role', role_id: roleId }));
+        }
+
+        function newChatSession() {
+            ws.send(JSON.stringify({ type: 'clear_session' }));
+            clearChat();
+            showToast('Nova sessão iniciada!', 'info');
+        }
+
+        function clearChat() {
+            document.getElementById('chat-container').innerHTML = '';
+            document.getElementById('checklist-panel').classList.add('hidden');
+        }
+
+        // ==========================================
+        // AUTONOMOUS LOOP & GENERATION STATE
+        // ==========================================
+        let autoLoopEnabled = true;
+
+        function toggleAutoLoop() {
+            autoLoopEnabled = !autoLoopEnabled;
+            const btn = document.getElementById('btn-toggle-autoloop');
+            const lbl = document.getElementById('autoloop-label');
+            const ico = document.getElementById('autoloop-icon');
+            if (autoLoopEnabled) {
+                btn.className = 'flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-bold border border-cyan-500/40 bg-cyan-950/40 text-cyan-300 hover:bg-cyan-900/50 transition shadow glow-cyan';
+                lbl.innerText = 'Autônomo: ON';
+                ico.className = 'fa-solid fa-infinity text-cyan-400';
+                showToast('Modo Autônomo Ativado: o agente avança continuamente até o resultado final.', 'info');
+            } else {
+                btn.className = 'flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium border border-brand-border bg-brand-dark text-gray-400 hover:text-white transition';
+                lbl.innerText = 'Passo a Passo';
+                ico.className = 'fa-solid fa-forward-step text-amber-400';
+                showToast('Modo Passo a Passo: o agente para a cada etapa para sua validação.', 'info');
+            }
+        }
+
+        function stopGeneration() {
+            if (!isGenerating) return;
+            ws.send(JSON.stringify({ type: 'stop_generation' }));
+            showToast('Interrompendo agente autônomo...', 'warning');
+            setGeneratingState(false);
+        }
+
+        function setGeneratingState(isGen) {
+            isGenerating = isGen;
+            const btnSend = document.getElementById('btn-send');
+            const btnStopHeader = document.getElementById('btn-stop-generation');
+            const btnStopInput = document.getElementById('btn-stop-chat-input');
+            
+            if (btnSend) {
+                btnSend.disabled = isGen;
+                if (isGen) btnSend.classList.add('opacity-50');
+                else btnSend.classList.remove('opacity-50');
+            }
+            if (btnStopHeader) {
+                if (isGen) btnStopHeader.classList.remove('hidden');
+                else btnStopHeader.classList.add('hidden');
+            }
+            if (btnStopInput) {
+                if (isGen) btnStopInput.classList.remove('hidden');
+                else btnStopInput.classList.add('hidden');
+            }
+        }
+
+        function renderAutonomousStepNotice(data) {
+            const chatContainer = document.getElementById('chat-container');
+            const banner = document.createElement('div');
+            banner.className = 'step-notice-banner animate-fade-in select-none';
+            banner.innerHTML = `
+                <i class="fa-solid fa-arrows-spin fa-spin text-cyan-400 text-sm"></i>
+                <div class="flex-1 flex items-center justify-between">
+                    <span>${data.msg || `Avançando autonomamente na Etapa ${data.step}/${data.max_steps}...`}</span>
+                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-900/60 text-cyan-200 border border-cyan-700 font-mono">Etapa ${data.step}/${data.max_steps}</span>
+                </div>
+            `;
+            chatContainer.appendChild(banner);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function handleSuggestionClick(s) {
+            if (s.action === 'execute_current') {
+                executeCurrentFile();
+                return;
+            }
+            if (s.label && s.label.includes('Não fazer')) {
+                const input = document.getElementById('chat-input');
+                input.value = 'Não execute dessa forma. Por favor, faça os seguintes ajustes: ';
+                input.focus();
+                input.setSelectionRange(input.value.length, input.value.length);
+                return;
+            }
+            if (s.prompt) {
+                const input = document.getElementById('chat-input');
+                input.value = s.prompt;
+                sendPrompt();
+            }
+        }
+
+        // ==========================================
+        // CHAT & STREAMING ENGINE (SMOOTH & ANTI-LAG)
+        // ==========================================
+        document.getElementById('chat-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                e.preventDefault();
+                sendPrompt();
+            }
+        });
+
+        function sendPrompt() {
+            if (isGenerating) return;
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            
+            if (!text && !attachedFile) return;
+
+            let displayUserText = text;
+            if (attachedFile) {
+                displayUserText += `\n\n📎 *[Anexo: ${attachedFile.name} (${formatBytes(attachedFile.size)})]*`;
+            }
+
+            appendMessage('Você', displayUserText, 'user');
+
+            ws.send(JSON.stringify({
+                type: 'prompt',
+                content: text,
+                attachment: attachedFile,
+                role: currentRole,
+                auto_loop: autoLoopEnabled
+            }));
+
+            input.value = '';
+            setGeneratingState(true);
+            removeAttachment();
+        }
+
+        let currentMsgBubble = null;
+        let currentThinkBox = null;
+        let currentResponseBox = null;
+        let rawResponseText = '';
+        let renderThrottleTimer = null;
+
+        function appendStreamChunk(content, isThink) {
+            const chatContainer = document.getElementById('chat-container');
+            const isAtBottom = (chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight) < 120;
+
+            if (!currentMsgBubble) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'flex flex-col gap-1 items-start text-xs w-full animate-fade-in';
+                
+                const agentTitle = isPladixMode ? 'Pladix Coder PHP (Supremo)' : 'DeepSeek AI';
+                wrapper.innerHTML = `
+                    <div class="flex items-center gap-1.5 text-cyan-400 font-bold text-[11px]">
+                        <i class="fa-solid fa-robot"></i>
+                        <span>${agentTitle}</span>
+                        <div class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping ml-1"></div>
+                    </div>
+                `;
+
+                const bubble = document.createElement('div');
+                bubble.className = 'bg-brand-card border border-brand-border text-gray-200 p-3.5 rounded-xl rounded-tl-none w-full shadow-lg space-y-2 chat-content';
+                wrapper.appendChild(bubble);
+                chatContainer.appendChild(wrapper);
+                currentMsgBubble = bubble;
+                rawResponseText = '';
+            }
+
+            if (isThink) {
+                if (!currentThinkBox) {
+                    currentThinkBox = document.createElement('div');
+                    currentThinkBox.className = 'think-box p-2 mb-2 text-[11px] text-gray-400 font-mono select-text';
+                    currentThinkBox.innerHTML = `
+                        <div class="flex items-center justify-between text-cyan-400 font-bold mb-1 cursor-pointer" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-brain animate-pulse"></i> Raciocínio Profundo DeepSeek:</span>
+                            <span class="text-[9px] text-gray-500">expandir / ocultar</span>
+                        </div>
+                        <div class="think-content whitespace-pre-wrap leading-relaxed max-h-40 overflow-y-auto pr-1"></div>
+                    `;
+                    currentMsgBubble.appendChild(currentThinkBox);
+                }
+                currentThinkBox.querySelector('.think-content').innerText += content;
+            } else {
+                if (!currentResponseBox) {
+                    currentResponseBox = document.createElement('div');
+                    currentResponseBox.className = 'response-text whitespace-pre-wrap leading-relaxed text-xs';
+                    currentMsgBubble.appendChild(currentResponseBox);
+                }
+                rawResponseText += content;
+                
+                // Throttle live markdown parse so there is zero jitter or lag (smooth 90ms batching)
+                if (!renderThrottleTimer) {
+                    renderThrottleTimer = setTimeout(() => {
+                        let cleanStream = rawResponseText.replace(/<tool_call>[\s\S]*?<\/tool_call>/gi, '\n[⚡ Executando Ação no Workspace...]\n');
+                        cleanStream = cleanStream.replace(/<checklist>[\s\S]*?<\/checklist>/gi, '');
+                        if (currentResponseBox) {
+                            currentResponseBox.innerHTML = marked.parse(cleanStream);
+                            highlightAllCodeBlocks(currentResponseBox);
+                        }
+                        renderThrottleTimer = null;
+                    }, 90);
+                }
+            }
+
+            if (isAtBottom) {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+        }
+
+        function finalizeStreamChunk(executedToolsCount, suggestions, isStopped) {
+            if (renderThrottleTimer) {
+                clearTimeout(renderThrottleTimer);
+                renderThrottleTimer = null;
+            }
+
+            if (currentResponseBox) {
+                let clean = rawResponseText.replace(/<tool_call>[\s\S]*?<\/tool_call>/gi, '');
+                clean = clean.replace(/<checklist>[\s\S]*?<\/checklist>/gi, '');
+                currentResponseBox.innerHTML = marked.parse(clean.trim());
+                highlightAllCodeBlocks(currentResponseBox);
+            }
+
+            // Render interactive action buttons / suggestion chips
+            if (currentMsgBubble && suggestions && suggestions.length > 0 && !isStopped) {
+                const suggContainer = document.createElement('div');
+                suggContainer.className = 'agent-suggestions flex flex-wrap gap-1.5 pt-2.5 mt-2.5 border-t border-brand-border/60 select-none';
+                
+                let titleHtml = `
+                    <div class="w-full text-[10px] text-cyan-400 font-semibold mb-1 flex items-center justify-between">
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> Ações Rápidas & Próximas Etapas:</span>
+                        <span class="text-[9px] text-gray-500 font-normal">Clique para avançar</span>
+                    </div>
+                `;
+                suggContainer.innerHTML = titleHtml;
+
+                suggestions.forEach(s => {
+                    const btn = document.createElement('button');
+                    let btnStyle = 'bg-brand-dark/90 hover:bg-cyan-950/60 border-brand-border hover:border-cyan-500/50 text-gray-200 hover:text-cyan-300';
+                    
+                    if (s.label.includes('Continuar')) {
+                        btnStyle = 'bg-gradient-to-r from-blue-950/60 to-cyan-950/60 border-cyan-500/50 text-cyan-200 hover:brightness-125';
+                    } else if (s.label.includes('Sim')) {
+                        btnStyle = 'bg-emerald-950/50 border-emerald-500/50 text-emerald-300 hover:bg-emerald-900/50';
+                    } else if (s.label.includes('Não')) {
+                        btnStyle = 'bg-red-950/40 border-red-500/40 text-red-300 hover:bg-red-900/40';
+                    } else if (s.label.includes('XAMPP')) {
+                        btnStyle = 'bg-purple-950/50 border-purple-500/50 text-purple-300 hover:bg-purple-900/50';
+                    }
+
+                    btn.className = `suggestion-chip px-2.5 py-1.5 rounded-lg border text-[11px] font-medium transition flex items-center gap-1.5 shadow-sm ${btnStyle}`;
+                    btn.innerText = s.label;
+                    btn.onclick = () => handleSuggestionClick(s);
+                    suggContainer.appendChild(btn);
+                });
+
+                currentMsgBubble.appendChild(suggContainer);
+            }
+
+            currentMsgBubble = null;
+            currentThinkBox = null;
+            currentResponseBox = null;
+            rawResponseText = '';
+            setGeneratingState(false);
+
+            if (executedToolsCount > 0) {
+                showToast(`Agente concluiu ${executedToolsCount} ações no workspace!`, 'success');
+            }
+        }
+
+        function highlightAllCodeBlocks(container) {
+            container.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+                
+                const pre = block.parentElement;
+                if (!pre.querySelector('.copy-code-btn')) {
+                    const btn = document.createElement('button');
+                    btn.className = 'copy-code-btn absolute top-2 right-2 px-2 py-0.5 rounded bg-brand-panel hover:bg-brand-hover text-[10px] text-gray-300 border border-brand-border transition';
+                    btn.innerHTML = '<i class="fa-solid fa-copy"></i> Copiar';
+                    btn.onclick = () => {
+                        navigator.clipboard.writeText(block.innerText).then(() => {
+                            btn.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> Copiado!';
+                            setTimeout(() => { btn.innerHTML = '<i class="fa-solid fa-copy"></i> Copiar'; }, 2000);
+                        });
+                    };
+                    pre.style.position = 'relative';
+                    pre.appendChild(btn);
+                }
+            });
+        }
+
+        function renderToolExecution(tool) {
+            const chatContainer = document.getElementById('chat-container');
+            const card = document.createElement('div');
+            
+            const isSuccess = tool.success;
+            const borderCol = isSuccess ? 'border-emerald-500/50 bg-emerald-950/20' : 'border-red-500/50 bg-red-950/20';
+            const icon = isSuccess ? '<i class="fa-solid fa-circle-check text-emerald-400"></i>' : '<i class="fa-solid fa-circle-xmark text-red-400"></i>';
+
+            let actionTitle = 'Ação Autônoma';
+            if (tool.action === 'create_file') actionTitle = `Arquivo Criado: ${tool.path}`;
+            else if (tool.action === 'edit_file') actionTitle = `Arquivo Editado: ${tool.path}`;
+            else if (tool.action === 'create_dir') actionTitle = `Pasta Criada: ${tool.path}`;
+            else if (tool.action === 'run_command') actionTitle = `Comando Executado: ${tool.path}`;
+
+            let syntaxHtml = '';
+            if (tool.syntax && tool.syntax.valid) {
+                syntaxHtml = `<div class="text-[10px] text-emerald-400 font-semibold mt-1">✓ Sintaxe ${tool.syntax.language} verificada e válida!</div>`;
+            }
+
+            card.className = `p-2.5 rounded-lg border ${borderCol} text-xs flex flex-col gap-1 shadow`;
+            card.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <span class="font-bold text-gray-200 flex items-center gap-1.5">
+                        ${icon} ${actionTitle}
+                    </span>
+                    <span class="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-brand-dark text-gray-400">${tool.action}</span>
+                </div>
+                ${tool.error ? `<div class="text-[11px] text-red-400 mt-1">${tool.error}</div>` : ''}
+                ${syntaxHtml}
+            `;
+
+            chatContainer.appendChild(card);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function renderChecklist(items) {
+            const panel = document.getElementById('checklist-panel');
+            const container = document.getElementById('checklist-items');
+            const counter = document.getElementById('checklist-counter');
+            panel.classList.remove('hidden');
+            container.innerHTML = '';
+            counter.innerText = `${items.length} etapas`;
+
+            items.forEach(item => {
+                const el = document.createElement('div');
+                let stIcon = '<i class="fa-regular fa-circle text-gray-500"></i>';
+                let txtClass = 'text-gray-400';
+
+                if (item.status === 'done') {
+                    stIcon = '<i class="fa-solid fa-circle-check text-emerald-400"></i>';
+                    txtClass = 'text-gray-300 line-through';
+                } else if (item.status === 'in_progress') {
+                    stIcon = '<i class="fa-solid fa-spinner fa-spin text-amber-400"></i>';
+                    txtClass = 'text-amber-300 font-semibold';
+                } else if (item.status === 'error') {
+                    stIcon = '<i class="fa-solid fa-circle-exclamation text-red-400"></i>';
+                    txtClass = 'text-red-300';
+                }
+
+                el.className = 'flex items-center gap-2 py-0.5';
+                el.innerHTML = `${stIcon} <span class="${txtClass}">${item.text}</span>`;
+                container.appendChild(el);
+            });
+        }
+
+        function toggleChecklistVisibility() {
+            const container = document.getElementById('checklist-items');
+            const icon = document.getElementById('checklist-toggle-icon');
+            container.classList.toggle('hidden');
+            icon.classList.toggle('fa-chevron-up');
+            icon.classList.toggle('fa-chevron-down');
+        }
+
+        function appendMessage(sender, text, type) {
+            const container = document.getElementById('chat-container');
+            const wrapper = document.createElement('div');
+            const isUser = type === 'user';
+            
+            wrapper.className = `flex flex-col gap-1 text-xs ${isUser ? 'items-end' : 'items-start'} w-full`;
+            
+            let nameBadge = `<span class="text-[11px] ${isUser ? 'text-cyan-400 font-bold' : 'text-gray-400 font-semibold'}">${sender}</span>`;
+            wrapper.innerHTML = nameBadge;
+            
+            const bubble = document.createElement('div');
+            bubble.className = isUser 
+                ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white p-3 rounded-xl rounded-tr-none shadow-md whitespace-pre-wrap max-w-[90%] font-medium'
+                : 'bg-brand-card border border-brand-border text-gray-300 p-3 rounded-xl rounded-tl-none shadow-md whitespace-pre-wrap w-full';
+            
+            bubble.innerText = text;
+            wrapper.appendChild(bubble);
+            container.appendChild(wrapper);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // ==========================================
+        // UTILITIES & TOASTS
+        // ==========================================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bg = 'bg-brand-card border-brand-border text-gray-200';
+            let icon = '<i class="fa-solid fa-info text-cyan-400"></i>';
+            
+            if (type === 'success') {
+                bg = 'bg-emerald-950/90 border-emerald-700 text-emerald-200';
+                icon = '<i class="fa-solid fa-circle-check text-emerald-400"></i>';
+            } else if (type === 'error') {
+                bg = 'bg-red-950/90 border-red-700 text-red-200';
+                icon = '<i class="fa-solid fa-triangle-exclamation text-red-400"></i>';
+            } else if (type === 'warning') {
+                bg = 'bg-amber-950/90 border-amber-700 text-amber-200';
+                icon = '<i class="fa-solid fa-triangle-exclamation text-amber-400"></i>';
+            }
+
+            toast.className = `px-3.5 py-2.5 rounded-xl border ${bg} text-xs shadow-2xl flex items-center gap-2.5 transition-all transform duration-300 translate-y-2 opacity-0`;
+            toast.innerHTML = `${icon} <span class="font-medium">${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        function formatBytes(bytes, decimals = 1) {
+            if (!bytes || bytes === 0) return '0 B';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+    </script>
+</body>
+</html>
